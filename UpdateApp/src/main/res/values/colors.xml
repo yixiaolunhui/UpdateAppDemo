@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="uploadlist_tv">#333333</color>
+    <color name="uploadlist_tv2">#c9c9c9</color>
+    <color name="uploadlist_finish_time">#c9c9c9</color>
+    <color name="uploadlist_tv_select">#ff9a18</color>
+    <color name="uploadlist_bg">#80000000</color>
+    <color name="uploadlist_progress">#91e368</color>
+    <color name="uploadlist_progress_bg">#d5d5d5</color>
+    <color name="uploadlist_error_warn">#fc3e39</color>
+    <color name="defult_tab_item">#ffffff</color>
+    <color name="defult_tab_item_pressed">#f2f4f8</color>
+</resources>
