@@ -7,15 +7,20 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.renrenfenqi.update.UpdateDialog;
+import com.renrenfenqi.update.UpdateManager;
+import com.renrenfenqi.update.listener.UpdateListener;
 import com.renrenfenqi.update.service.UpdateService;
 
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 public class MainActivity extends AppCompatActivity {
     private static final String URL = "http://27.221.81.15/dd.myapp.com/16891/63C4DA61823B87026BBC8C22BBBE212F.apk?mkey=575e443c53406290&f=8b5d&c=0&fsname=com.daimajia.gold_3.2.0_80.apk&p=.apk";
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,15 +30,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void doClick(View view){
-        Toast.makeText(MainActivity.this,"doClick",Toast.LENGTH_LONG).show();
-        UpdateService.Builder.create(URL)
+//        Toast.makeText(MainActivity.this,"doClick",Toast.LENGTH_LONG).show();
+//        UpdateService.Builder.create(URL)
+//                .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
+//                .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
+//                .build(this);
+//
+//
+//
+        final UpdateDialog dialog=new UpdateDialog(this);
+
+        UpdateManager.create(this)
+                .setDownloadUrl(URL)
                 .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
                 .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
-                .build(this);
+                .setForceUpdate(true)
+                .setIsSendBroadcast(false)
+                .setUpdateListener(new UpdateListener() {
+                    @Override
+                    public void start() {
+                        Log.v(TAG,"start:");
+                        dialog.show();
+                    }
 
+                    @Override
+                    public void update(int progress) {
+                        Log.v(TAG,"update:"+progress);
 
+                        dialog.updateProgressText(progress);
+                    }
 
-        UpdateDialog dialog=new UpdateDialog(this);
-        dialog.show();
+                    @Override
+                    public void success() {
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void error() {
+                        dialog.dismiss();
+                    }
+                })
+                .build();
+    }
+
+    protected void onDestroy() {
+        // TODO 自动生成的方法存根
+        super.onDestroy();
+        UpdateManager.create(this).unBindService();
     }
 }

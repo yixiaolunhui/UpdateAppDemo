@@ -1,4 +1,4 @@
-package com.renrenfenqi.updatedemo;
+package com.renrenfenqi.update;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -16,7 +16,7 @@ public class UpdateDialog extends AlertDialog {
     private ProgressBar mProgress;
     private TextView mProgressText;
 
-    protected UpdateDialog(Context context) {
+    public UpdateDialog(Context context) {
         super(context);
         init(context);
     }

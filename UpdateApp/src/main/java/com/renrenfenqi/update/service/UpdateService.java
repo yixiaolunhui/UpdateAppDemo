@@ -1,14 +1,10 @@
 package com.renrenfenqi.update.service;
 
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -17,8 +13,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.renrenfenqi.update.BuildConfig;
 import com.renrenfenqi.update.Config;
@@ -49,21 +43,16 @@ public class UpdateService extends Service {
     public static final String PROGRESS = "progress";
 
     //params参数
-    private static final String URL = "downloadUrl";
-    private static final String ICO_RES_ID = "icoResId";
-    private static final String ICO_SMALL_RES_ID = "icoSmallResId";
-    private static final String UPDATE_PROGRESS = "updateProgress";
-    private static final String STORE_DIR = "storeDir";
-    private static final String DOWNLOAD_NOTIFICATION_FLAG = "downloadNotificationFlag";
-    private static final String DOWNLOAD_SUCCESS_NOTIFICATION_FLAG = "downloadSuccessNotificationFlag";
-    private static final String DOWNLOAD_ERROR_NOTIFICATION_FLAG = "downloadErrorNotificationFlag";
-    private static final String IS_SEND_BROADCAST = "isSendBroadcast";
-    private static final String IS_SHOW_DIALOG = "isShowDialog";
-    private static final String IS_CAN_DISMISS_DIALOG = "isCanDismissDialog";
-
-
-    private static final int MSG_START_DOWN=100;
-    private static final int MSG_UPDATE_PROGRESS=101;
+    public static final String URL = "downloadUrl";
+    public static final String ICO_RES_ID = "icoResId";
+    public static final String ICO_SMALL_RES_ID = "icoSmallResId";
+    public static final String UPDATE_PROGRESS = "updateProgress";
+    public static final String STORE_DIR = "storeDir";
+    public static final String DOWNLOAD_NOTIFICATION_FLAG = "downloadNotificationFlag";
+    public static final String DOWNLOAD_SUCCESS_NOTIFICATION_FLAG = "downloadSuccessNotificationFlag";
+    public static final String DOWNLOAD_ERROR_NOTIFICATION_FLAG = "downloadErrorNotificationFlag";
+    public static final String IS_SEND_BROADCAST = "isSendBroadcast";
+    public static final String IS_FORCE_UPDATE = "isForceUpdate";
 
 
     //下载大小通知频率
@@ -82,12 +71,11 @@ public class UpdateService extends Service {
     private int downloadSuccessNotificationFlag;
     private int downloadErrorNotificationFlag;
     private boolean isSendBroadcast;
-    private boolean isShowDialog;
-    private boolean isCanDismissDialog;
+    private boolean isForceUpdate;
 
     private UpdateListener updateListener;//回调接口
 
-    private LocalBinder localBinder = new LocalBinder();
+    public LocalBinder localBinder = new LocalBinder();
 
     public String storeDir;//默认存放路径
 
@@ -160,6 +148,7 @@ public class UpdateService extends Service {
             downloadErrorNotificationFlag = intent.getIntExtra(DOWNLOAD_ERROR_NOTIFICATION_FLAG, 0);
             downloadSuccessNotificationFlag = intent.getIntExtra(DOWNLOAD_SUCCESS_NOTIFICATION_FLAG, 0);
             isSendBroadcast = intent.getBooleanExtra(IS_SEND_BROADCAST, false);
+            isForceUpdate = intent.getBooleanExtra(IS_FORCE_UPDATE, false);
 
 
             if (BuildConfig.DEBUG){
@@ -175,8 +164,12 @@ public class UpdateService extends Service {
             }
 
             notifyId = startId;
-            buildNotification();
-            buildBroadcast();
+            if(!isForceUpdate){
+                buildNotification();
+                buildBroadcast();
+            }else{
+                isSendBroadcast=false;
+            }
             downloadApkTask = new DownloadApk(this);
             downloadApkTask.execute(downloadUrl);
         }
@@ -361,9 +354,13 @@ public class UpdateService extends Service {
      * 下载开始
      */
     private void start(){
-        builder.setContentTitle(appName);
-        builder.setContentText(getString(R.string.update_app_model_prepare, 1));
-        manager.notify(notifyId, builder.build());
+        Log.v("888888","startstart");
+        Log.v("888888","startstart"+updateListener);
+        if(builder!=null){
+            builder.setContentTitle(appName);
+            builder.setContentText(getString(R.string.update_app_model_prepare, 1));
+            manager.notify(notifyId, builder.build());
+        }
         sendLocalBroadcast(UPDATE_PROGRESS_STATUS, 1);
         if (updateListener != null){
             updateListener.start();
@@ -378,10 +375,12 @@ public class UpdateService extends Service {
     private void update(int progress){
         if (progress - lastProgressNumber > updateProgress){
             lastProgressNumber = progress;
-            builder.setProgress(100, progress, false);
-            builder.setContentText(getString(R.string.update_app_model_progress, progress, "%"));
-            manager.notify(notifyId, builder.build());
-            sendLocalBroadcast(UPDATE_PROGRESS_STATUS, progress);
+            if(builder!=null){
+                builder.setProgress(100, progress, false);
+                builder.setContentText(getString(R.string.update_app_model_progress, progress, "%"));
+                manager.notify(notifyId, builder.build());
+                sendLocalBroadcast(UPDATE_PROGRESS_STATUS, progress);
+            }
             if (updateListener != null){
                 updateListener.update(progress);
             }
@@ -393,16 +392,19 @@ public class UpdateService extends Service {
      * @param path
      */
     private void success(String path) {
-        builder.setProgress(0, 0, false);
-        builder.setContentText(getString(R.string.update_app_model_success));
         Intent i = InstallApkUtil.installIntent(path);
-        PendingIntent intent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(intent);
-        builder.setDefaults(downloadSuccessNotificationFlag);
-        Notification n = builder.build();
-        n.contentIntent = intent;
-        manager.notify(notifyId, n);
-        sendLocalBroadcast(UPDATE_SUCCESS_STATUS, 100);
+        if(builder!=null){
+            builder.setProgress(0, 0, false);
+            builder.setContentText(getString(R.string.update_app_model_success));
+            PendingIntent intent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentIntent(intent);
+            builder.setDefaults(downloadSuccessNotificationFlag);
+            Notification n = builder.build();
+            n.contentIntent = intent;
+            manager.notify(notifyId, n);
+            sendLocalBroadcast(UPDATE_SUCCESS_STATUS, 100);
+        }
+
         if (updateListener != null){
             updateListener.success();
         }
@@ -414,171 +416,24 @@ public class UpdateService extends Service {
      * 下载失败
      */
     private void error(){
-        Intent i = InstallApkUtil.webLauncher(downloadUrl);
-        PendingIntent intent = PendingIntent.getActivity(this, 0, i,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentText(getString(R.string.update_app_model_error));
-        builder.setContentIntent(intent);
-        builder.setProgress(0, 0, false);
-        builder.setDefaults(downloadErrorNotificationFlag);
-        Notification n = builder.build();
-        n.contentIntent = intent;
-        manager.notify(notifyId, n);
-        sendLocalBroadcast(UPDATE_ERROR_STATUS, -1);
+        if(builder!=null){
+            Intent i = InstallApkUtil.webLauncher(downloadUrl);
+            PendingIntent intent = PendingIntent.getActivity(this, 0, i,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            builder.setContentText(getString(R.string.update_app_model_error));
+            builder.setContentIntent(intent);
+            builder.setProgress(0, 0, false);
+            builder.setDefaults(downloadErrorNotificationFlag);
+            Notification n = builder.build();
+            n.contentIntent = intent;
+            manager.notify(notifyId, n);
+            sendLocalBroadcast(UPDATE_ERROR_STATUS, -1);
+        }
+
         if (updateListener != null){
             updateListener.error();
         }
         stopSelf();
     }
 
-
-    /**
-     * builder类 辅助使用更新服务
-     */
-    public static class Builder{
-
-        private String downloadUrl;
-        private int icoResId = DEFAULT_RES_ID;             //default app ico
-        private int icoSmallResId = DEFAULT_RES_ID;
-        private int updateProgress = UPDATE_NUMBER_SIZE;   //update notification progress when it add number
-        private String storeDir;                           //default sdcard/Android/package/update
-        private int downloadNotificationFlag;
-        private int downloadSuccessNotificationFlag;
-        private int downloadErrorNotificationFlag;
-        private boolean isSendBroadcast;
-
-        protected Builder(String downloadUrl){
-            this.downloadUrl = downloadUrl;
-        }
-
-        public static Builder create(String downloadUrl){
-            if (downloadUrl == null) {
-                throw new NullPointerException("downloadUrl == null");
-            }
-            return new Builder(downloadUrl);
-        }
-
-
-        public String getDownloadUrl() {
-            return downloadUrl;
-        }
-
-        public int getIcoResId() {
-            return icoResId;
-        }
-
-        public Builder setIcoResId(int icoResId) {
-            this.icoResId = icoResId;
-            return this;
-        }
-
-        public int getIcoSmallResId() {
-            return icoSmallResId;
-        }
-
-        public Builder setIcoSmallResId(int icoSmallResId) {
-            this.icoSmallResId = icoSmallResId;
-            return this;
-        }
-
-        public int getUpdateProgress() {
-            return updateProgress;
-        }
-
-        public Builder setUpdateProgress(int updateProgress) {
-            if (updateProgress < 1){
-                throw new IllegalArgumentException("updateProgress < 1");
-            }
-            this.updateProgress = updateProgress;
-            return this;
-        }
-
-        public String getStoreDir() {
-            return storeDir;
-        }
-
-        public Builder setStoreDir(String storeDir) {
-            this.storeDir = storeDir;
-            return this;
-        }
-
-        public int getDownloadNotificationFlag() {
-            return downloadNotificationFlag;
-        }
-
-        public Builder setDownloadNotificationFlag(int downloadNotificationFlag) {
-            this.downloadNotificationFlag = downloadNotificationFlag;
-            return this;
-        }
-
-        public int getDownloadSuccessNotificationFlag() {
-            return downloadSuccessNotificationFlag;
-        }
-
-        public Builder setDownloadSuccessNotificationFlag(int downloadSuccessNotificationFlag) {
-            this.downloadSuccessNotificationFlag = downloadSuccessNotificationFlag;
-            return this;
-        }
-
-        public int getDownloadErrorNotificationFlag() {
-            return downloadErrorNotificationFlag;
-        }
-
-        public Builder setDownloadErrorNotificationFlag(int downloadErrorNotificationFlag) {
-            this.downloadErrorNotificationFlag = downloadErrorNotificationFlag;
-            return this;
-        }
-
-        public boolean isSendBroadcast() {
-            return isSendBroadcast;
-        }
-
-        public Builder setIsSendBroadcast(boolean isSendBroadcast) {
-            this.isSendBroadcast = isSendBroadcast;
-            return this;
-        }
-
-        public Builder build(Context context){
-            if (context == null){
-                throw new NullPointerException("context == null");
-            }
-            Intent intent = new Intent();
-            intent.setClass(context, UpdateService.class);
-            intent.putExtra(URL, downloadUrl);
-
-            if (icoResId == DEFAULT_RES_ID){
-                icoResId = getIcon(context);
-            }
-
-            if (icoSmallResId == DEFAULT_RES_ID){
-                icoSmallResId = icoResId;
-            }
-            intent.putExtra(ICO_RES_ID, icoResId);
-            intent.putExtra(STORE_DIR, storeDir);
-            intent.putExtra(ICO_SMALL_RES_ID, icoSmallResId);
-            intent.putExtra(UPDATE_PROGRESS, updateProgress);
-            intent.putExtra(DOWNLOAD_NOTIFICATION_FLAG, downloadNotificationFlag);
-            intent.putExtra(DOWNLOAD_SUCCESS_NOTIFICATION_FLAG, downloadSuccessNotificationFlag);
-            intent.putExtra(DOWNLOAD_ERROR_NOTIFICATION_FLAG, downloadErrorNotificationFlag);
-            intent.putExtra(IS_SEND_BROADCAST, isSendBroadcast);
-            context.startService(intent);
-
-            return this;
-        }
-
-        private int getIcon(Context context){
-
-            final PackageManager packageManager = context.getPackageManager();
-            ApplicationInfo appInfo = null;
-            try {
-                appInfo = packageManager.getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            }
-            if (appInfo != null){
-                return appInfo.icon;
-            }
-            return 0;
-        }
-    }
 }
