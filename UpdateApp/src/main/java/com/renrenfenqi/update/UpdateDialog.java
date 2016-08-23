@@ -34,6 +34,7 @@ public class UpdateDialog extends AlertDialog {
         View v = inflater.inflate(com.renrenfenqi.update.R.layout.update_down_view, null);
         mProgress = (ProgressBar)v.findViewById(com.renrenfenqi.update.R.id.update_progress);
         mProgressText = (TextView) v.findViewById(com.renrenfenqi.update.R.id.update_progress_text);
+        mProgressText.setText("正在下载"+0+"%");
         setView(v);
         setCanceledOnTouchOutside(false);
         setCancelable(false);
