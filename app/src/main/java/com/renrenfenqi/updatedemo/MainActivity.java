@@ -30,52 +30,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void doClick(View view){
-//        Toast.makeText(MainActivity.this,"doClick",Toast.LENGTH_LONG).show();
-//        UpdateService.Builder.create(URL)
-//                .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
-//                .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
-//                .build(this);
-//
-//
-//
-        final UpdateDialog dialog=new UpdateDialog(this);
 
         UpdateManager.create(this)
                 .setDownloadUrl(URL)
                 .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
                 .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
                 .setForceUpdate(true)
-                .setIsSendBroadcast(false)
-                .setUpdateListener(new UpdateListener() {
-                    @Override
-                    public void start() {
-                        Log.v(TAG,"start:");
-                        dialog.show();
-                    }
-
-                    @Override
-                    public void update(int progress) {
-                        Log.v(TAG,"update:"+progress);
-
-                        dialog.updateProgressText(progress);
-                    }
-
-                    @Override
-                    public void success() {
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void error() {
-                        dialog.dismiss();
-                    }
-                })
+                .setIsSendBroadcast(true)
                 .build();
     }
 
     protected void onDestroy() {
-        // TODO 自动生成的方法存根
         super.onDestroy();
-        UpdateManager.create(this).unBindService();
+        UpdateManager.create(this).unregisterReceiver();
     }
 }

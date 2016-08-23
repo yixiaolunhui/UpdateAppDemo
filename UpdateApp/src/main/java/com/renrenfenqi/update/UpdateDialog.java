@@ -43,7 +43,6 @@ public class UpdateDialog extends AlertDialog {
      */
     public void updateProgressText(int progress){
         if(mProgressText!=null&&mProgress!=null){
-            if(!isShowing())show();
             mProgressText.setText("正在下载"+progress+"%");
             mProgress.setProgress(progress);
         }

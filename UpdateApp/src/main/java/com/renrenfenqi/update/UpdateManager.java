@@ -1,10 +1,15 @@
 package com.renrenfenqi.update;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.renrenfenqi.update.listener.UpdateListener;
 import com.renrenfenqi.update.service.UpdateService;
@@ -20,7 +25,6 @@ public class UpdateManager {
     //日志tag
     public final  static String TAG="UpdateManager";
     private static UpdateManager mUpdateManager;
-
     public Context mContext;
     //下载地址
     private String downloadUrl;
@@ -42,10 +46,7 @@ public class UpdateManager {
     private boolean isSendBroadcast;
     //是否强制升级
     private boolean isForceUpdate;
-
-    private boolean mBound = false;
-
-    private  UpdateListener updateListener;
+    private UpdateDialog dialog;
 
     protected UpdateManager(Context mContext){
         this.mContext = mContext;
@@ -154,16 +155,16 @@ public class UpdateManager {
         return this;
     }
 
-    public UpdateManager setUpdateListener(UpdateListener updateListener) {
-        this.updateListener = updateListener;
-        return this;
-    }
-
-
     public UpdateManager build(){
         if (mContext == null){
             throw new NullPointerException("context == null");
         }
+        //注册广播
+        IntentFilter intentFilter = new IntentFilter(UpdateService.ACTION);
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(mContext);
+        localBroadcastManager.registerReceiver(updateBroadcastReceiver, intentFilter);
+        dialog=new UpdateDialog(mContext);
+
         Intent intent = new Intent();
         intent.setClass(mContext, UpdateService.class);
         intent.putExtra(UpdateService.URL, downloadUrl);
@@ -185,29 +186,44 @@ public class UpdateManager {
         intent.putExtra(UpdateService.IS_SEND_BROADCAST, isSendBroadcast);
         intent.putExtra(UpdateService.IS_FORCE_UPDATE, isForceUpdate);
         mContext.startService(intent);
-        mContext.bindService(intent,conn , Context.BIND_AUTO_CREATE);
-
         return this;
 
     }
 
-    public void unBindService(){
-        if( mBound)
-            mContext.unbindService(conn);
+    /**
+     * 注销广播
+     */
+    public void unregisterReceiver(){
+        LocalBroadcastManager  localBroadcastManager = LocalBroadcastManager.getInstance(mContext);
+        localBroadcastManager.unregisterReceiver(updateBroadcastReceiver);
     }
 
-    ServiceConnection conn=new ServiceConnection() {
+    /**
+     * 广播接收器
+     */
+    BroadcastReceiver updateBroadcastReceiver = new BroadcastReceiver() {
         @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBound=false;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder binder) {
-            ((UpdateService.LocalBinder)binder).setUpdateListener(updateListener);
-            mBound=true;
+        public void onReceive(Context context, Intent intent) {
+            String action=intent.getAction();
+            int status=intent.getIntExtra(UpdateService.STATUS,UpdateService.UPDATE_START_STATUS);
+            int progress=intent.getIntExtra(UpdateService.PROGRESS,0);
+            if(action.equals(UpdateService.ACTION)&&isForceUpdate&&dialog!=null){
+                switch (status){
+                    case UpdateService.UPDATE_START_STATUS:
+                        if(!dialog.isShowing())
+                            dialog.show();
+                        break;
+                    case UpdateService.UPDATE_PROGRESS_STATUS:
+                        dialog.updateProgressText(progress);
+                        break;
+                    case UpdateService.UPDATE_SUCCESS_STATUS:
+                        dialog.dismiss();
+                        break;
+                    case UpdateService.UPDATE_ERROR_STATUS:
+                        dialog.dismiss();
+                        break;
+                }
+            }
         }
     };
-
-
 }

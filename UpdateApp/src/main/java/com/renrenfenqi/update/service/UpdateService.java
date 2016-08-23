@@ -38,7 +38,7 @@ public class UpdateService extends Service {
     public static final String TAG =  "UpdateService";
 
     //广播action
-    public static final String ACTION = "me.shenfan.UPDATE_APP";
+    public static final String ACTION = "update_action";
     public static final String STATUS = "status";
     public static final String PROGRESS = "progress";
 
@@ -59,9 +59,11 @@ public class UpdateService extends Service {
     public static final int UPDATE_NUMBER_SIZE = 1;
     public static final int DEFAULT_RES_ID = -1;
     //更新状态
-    public static final int UPDATE_PROGRESS_STATUS = 0;
+    public static final int UPDATE_START_STATUS =0;
+    public static final int UPDATE_PROGRESS_STATUS = 1;
+    public static final int UPDATE_SUCCESS_STATUS = 2;
     public static final int UPDATE_ERROR_STATUS = -1;
-    public static final int UPDATE_SUCCESS_STATUS = 1;
+
 
     private String downloadUrl;
     private int icoResId;
@@ -166,10 +168,8 @@ public class UpdateService extends Service {
             notifyId = startId;
             if(!isForceUpdate){
                 buildNotification();
-                buildBroadcast();
-            }else{
-                isSendBroadcast=false;
             }
+            buildBroadcast();
             downloadApkTask = new DownloadApk(this);
             downloadApkTask.execute(downloadUrl);
         }
@@ -354,14 +354,13 @@ public class UpdateService extends Service {
      * 下载开始
      */
     private void start(){
-        Log.v("888888","startstart");
         Log.v("888888","startstart"+updateListener);
         if(builder!=null){
             builder.setContentTitle(appName);
             builder.setContentText(getString(R.string.update_app_model_prepare, 1));
             manager.notify(notifyId, builder.build());
         }
-        sendLocalBroadcast(UPDATE_PROGRESS_STATUS, 1);
+        sendLocalBroadcast(UPDATE_START_STATUS, 1);
         if (updateListener != null){
             updateListener.start();
         }
@@ -379,8 +378,8 @@ public class UpdateService extends Service {
                 builder.setProgress(100, progress, false);
                 builder.setContentText(getString(R.string.update_app_model_progress, progress, "%"));
                 manager.notify(notifyId, builder.build());
-                sendLocalBroadcast(UPDATE_PROGRESS_STATUS, progress);
             }
+            sendLocalBroadcast(UPDATE_PROGRESS_STATUS, progress);
             if (updateListener != null){
                 updateListener.update(progress);
             }
@@ -402,9 +401,8 @@ public class UpdateService extends Service {
             Notification n = builder.build();
             n.contentIntent = intent;
             manager.notify(notifyId, n);
-            sendLocalBroadcast(UPDATE_SUCCESS_STATUS, 100);
         }
-
+        sendLocalBroadcast(UPDATE_SUCCESS_STATUS, 100);
         if (updateListener != null){
             updateListener.success();
         }
@@ -427,9 +425,8 @@ public class UpdateService extends Service {
             Notification n = builder.build();
             n.contentIntent = intent;
             manager.notify(notifyId, n);
-            sendLocalBroadcast(UPDATE_ERROR_STATUS, -1);
         }
-
+        sendLocalBroadcast(UPDATE_ERROR_STATUS, -1);
         if (updateListener != null){
             updateListener.error();
         }
