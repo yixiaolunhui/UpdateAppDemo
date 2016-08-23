@@ -1,14 +1,16 @@
 # A library of upgrade services
 
-#preview
+##preview
 
-if Mandatory upgrade
+#mandatory upgrade
+
 ![image](https://github.com/dalong982242260/UpdateAppDemo/blob/master/img/update.gif?raw=true)
 
-General upgrade
+#general upgrade
+
 ![image](https://github.com/dalong982242260/UpdateAppDemo/blob/master/img/update2.gif?raw=true)
 
-#use
+##use
 
          UpdateManager.create(this)
                         .setDownloadUrl(URL)
