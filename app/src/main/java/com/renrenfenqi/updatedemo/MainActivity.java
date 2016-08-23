@@ -30,11 +30,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void doClick(View view){
         UpdateManager.create(this)
-                .setDownloadUrl(URL)
+                .setDownloadUrl(URL)//设置下载apk网络连接
+                .setStoreDir("dalong")//设置保存路径
                 .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
                 .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
-                .setForceUpdate(false)
-                .setIsSendBroadcast(true)
+                .setForceUpdate(true)//是否是强制
+                .setIsSendBroadcast(true)// 是否发送广播
                 .build();
     }
 
