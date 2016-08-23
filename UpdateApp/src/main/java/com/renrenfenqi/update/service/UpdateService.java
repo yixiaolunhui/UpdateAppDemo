@@ -8,17 +8,21 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.renrenfenqi.update.BuildConfig;
 import com.renrenfenqi.update.Config;
 import com.renrenfenqi.update.R;
 import com.renrenfenqi.update.listener.UpdateListener;
 import com.renrenfenqi.update.utils.AppInfoUtil;
+import com.renrenfenqi.update.utils.FileUtil;
 import com.renrenfenqi.update.utils.InstallApkUtil;
 
 import java.io.File;
@@ -221,7 +225,7 @@ public class UpdateService extends Service {
     /**
      * 下载请求
      */
-    private static class DownloadApk extends AsyncTask<String, Integer, String> {
+    private  class DownloadApk extends AsyncTask<String, Integer, String> {
 
         private WeakReference<UpdateService> updateServiceWeakReference;
 
@@ -283,6 +287,11 @@ public class UpdateService extends Service {
                     } else {
                         file.delete();
                     }
+                }
+                //判别内存是否足够
+                if (FileUtil.getFreeDiskSpace() * 1024 < updateTotalSize) {
+                    mHandler.sendEmptyMessage(-1);
+                    return null;
                 }
                 file.createNewFile();
                 is = httpConnection.getInputStream();
@@ -349,12 +358,22 @@ public class UpdateService extends Service {
         }
     }
 
+    Handler mHandler=new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case -1:
+                    Toast.makeText(UpdateService.this,"sd卡空间不足",Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+    };
 
     /**
      * 下载开始
      */
     private void start(){
-        Log.v("888888","startstart"+updateListener);
         if(builder!=null){
             builder.setContentTitle(appName);
             builder.setContentText(getString(R.string.update_app_model_prepare, 1));
