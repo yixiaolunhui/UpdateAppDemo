@@ -43,6 +43,8 @@ public class UpdateManager {
     //是否强制升级
     private boolean isForceUpdate;
 
+    private boolean mBound = false;
+
     private  UpdateListener updateListener;
 
     protected UpdateManager(Context mContext){
@@ -190,18 +192,20 @@ public class UpdateManager {
     }
 
     public void unBindService(){
-        mContext.unbindService(conn);
+        if( mBound)
+            mContext.unbindService(conn);
     }
-    
+
     ServiceConnection conn=new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
+            mBound=false;
         }
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             ((UpdateService.LocalBinder)binder).setUpdateListener(updateListener);
+            mBound=true;
         }
     };
 
