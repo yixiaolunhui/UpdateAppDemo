@@ -1,17 +1,11 @@
 package com.renrenfenqi.update;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.renrenfenqi.update.listener.UpdateListener;
 import com.renrenfenqi.update.service.UpdateService;
 import com.renrenfenqi.update.utils.AppInfoUtil;
 
@@ -46,6 +40,7 @@ public class UpdateManager {
     private boolean isSendBroadcast;
     //是否强制升级
     private boolean isForceUpdate;
+    //强制升级对话框
     private UpdateDialog dialog;
 
     protected UpdateManager(Context mContext){
@@ -209,18 +204,20 @@ public class UpdateManager {
             int progress=intent.getIntExtra(UpdateService.PROGRESS,0);
             if(action.equals(UpdateService.ACTION)&&isForceUpdate&&dialog!=null){
                 switch (status){
-                    case UpdateService.UPDATE_START_STATUS:
+                    case UpdateService.UPDATE_START_STATUS://开始下载
                         if(!dialog.isShowing())
                             dialog.show();
                         break;
-                    case UpdateService.UPDATE_PROGRESS_STATUS:
+                    case UpdateService.UPDATE_PROGRESS_STATUS://下载中
                         dialog.updateProgressText(progress);
                         break;
-                    case UpdateService.UPDATE_SUCCESS_STATUS:
+                    case UpdateService.UPDATE_SUCCESS_STATUS://成功下载
                         dialog.dismiss();
+                        unregisterReceiver();
                         break;
-                    case UpdateService.UPDATE_ERROR_STATUS:
+                    case UpdateService.UPDATE_ERROR_STATUS:// 下载失败
                         dialog.dismiss();
+                        unregisterReceiver();
                         break;
                 }
             }

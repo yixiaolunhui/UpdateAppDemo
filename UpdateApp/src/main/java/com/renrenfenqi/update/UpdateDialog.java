@@ -7,7 +7,10 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.renrenfenqi.update.utils.AppInfoUtil;
+
 /**
+ * 强制升级弹出框
  * Created by zhouweilong on 16/8/22.
  */
 
@@ -26,7 +29,7 @@ public class UpdateDialog extends AlertDialog {
      * 显示下载对话框
      */
     private void init(Context context){
-        setTitle("正在下载新版本");
+        setTitle("新版本"+ AppInfoUtil.getAppName(context));
         final LayoutInflater inflater = LayoutInflater.from(context);
         View v = inflater.inflate(com.renrenfenqi.update.R.layout.update_down_view, null);
         mProgress = (ProgressBar)v.findViewById(com.renrenfenqi.update.R.id.update_progress);
