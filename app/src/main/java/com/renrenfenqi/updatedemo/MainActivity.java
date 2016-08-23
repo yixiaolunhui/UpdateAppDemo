@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
     }
 
+
     protected void onDestroy() {
         super.onDestroy();
         UpdateManager.create(this).unregisterReceiver();
