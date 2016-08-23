@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
                 .setDownloadUrl(URL)
                 .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
                 .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
-                .setForceUpdate(true)
+                .setForceUpdate(false)
                 .setIsSendBroadcast(true)
                 .build();
     }

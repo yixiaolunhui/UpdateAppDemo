@@ -2,7 +2,11 @@
 
 #preview
 
-![image](https://github.com/dalong982242260/AndroidRuler/blob/master/img/update.gif)
+if Mandatory upgrade
+![image](https://github.com/dalong982242260/UpdateAppDemo/blob/master/img/update.gif?raw=true)
+
+General upgrade
+![image](https://github.com/dalong982242260/UpdateAppDemo/blob/master/img/update2.gif?raw=true)
 
 #use
 
