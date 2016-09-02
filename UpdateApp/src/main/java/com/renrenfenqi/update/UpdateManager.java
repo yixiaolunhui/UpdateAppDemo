@@ -2,12 +2,18 @@ package com.renrenfenqi.update;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 
 import com.renrenfenqi.update.service.UpdateService;
 import com.renrenfenqi.update.utils.AppInfoUtil;
+import com.renrenfenqi.update.utils.InstallApkUtil;
+
+import java.io.File;
 
 /**
  * 升级管理类
@@ -42,6 +48,8 @@ public class UpdateManager {
     private boolean isForceUpdate;
     //强制升级对话框
     private UpdateDialog dialog;
+    private AlertDialog mFailDialog;
+    private AlertDialog mSuccessAlertDialog;
 
     protected UpdateManager(Context mContext){
         this.mContext = mContext;
@@ -159,7 +167,6 @@ public class UpdateManager {
         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(mContext);
         localBroadcastManager.registerReceiver(updateBroadcastReceiver, intentFilter);
         dialog=new UpdateDialog(mContext);
-
         Intent intent = new Intent();
         intent.setClass(mContext, UpdateService.class);
         intent.putExtra(UpdateService.URL, downloadUrl);
@@ -196,16 +203,18 @@ public class UpdateManager {
     /**
      * 广播接收器
      */
-    BroadcastReceiver updateBroadcastReceiver = new BroadcastReceiver() {
+    public BroadcastReceiver updateBroadcastReceiver = new BroadcastReceiver() {
+
         @Override
         public void onReceive(Context context, Intent intent) {
             String action=intent.getAction();
             int status=intent.getIntExtra(UpdateService.STATUS,UpdateService.UPDATE_START_STATUS);
             int progress=intent.getIntExtra(UpdateService.PROGRESS,0);
+            final String  filePath=intent.getStringExtra(UpdateService.FILEPATH);
             if(action.equals(UpdateService.ACTION)&&isForceUpdate&&dialog!=null){
                 switch (status){
                     case UpdateService.UPDATE_START_STATUS://开始下载
-                        if(!dialog.isShowing())
+                        if(dialog!=null&&!dialog.isShowing())
                             dialog.show();
                         break;
                     case UpdateService.UPDATE_PROGRESS_STATUS://下载中
@@ -213,14 +222,90 @@ public class UpdateManager {
                         break;
                     case UpdateService.UPDATE_SUCCESS_STATUS://成功下载
                         dialog.dismiss();
+                        showSuccessDialog(filePath);
                         unregisterReceiver();
                         break;
                     case UpdateService.UPDATE_ERROR_STATUS:// 下载失败
                         dialog.dismiss();
                         unregisterReceiver();
+                        showErrorDialog("下载失败","请重新下载");
                         break;
                 }
             }
         }
     };
+
+
+    /**
+     * 失败dialog
+     * @param title
+     * @param message
+     */
+    public  void  showErrorDialog(String title,String message){
+        AlertDialog.Builder  failBuilder=new AlertDialog.Builder(mContext);
+        failBuilder.setTitle(title);
+        failBuilder.setMessage(message);
+        failBuilder.setCancelable(false);
+        failBuilder.setPositiveButton("重新下载",new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.v(TAG,"点击了重新下载");
+                if(mFailDialog!=null){
+                    mFailDialog.dismiss();
+                }
+                UpdateManager.mUpdateManager.build();
+            }
+        });
+        if(!isForceUpdate){//如果不是强制升级的弹出安装对话框
+            failBuilder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Log.v(TAG,"点击了取消");
+                    if(mFailDialog!=null&&mFailDialog.isShowing()){
+                        mFailDialog.dismiss();
+                    }
+                }
+            });
+        }
+        mFailDialog=failBuilder.create();
+        mFailDialog.show();
+    }
+    /**
+     * 成功dialog
+     * @param filePath
+     */
+    public  void  showSuccessDialog(final String filePath){
+        AlertDialog.Builder  builder=new AlertDialog.Builder(mContext);
+        builder.setTitle("下载完成");
+        builder.setMessage("点击按钮安装!");
+        builder.setCancelable(false);
+        builder.setPositiveButton("安装",new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.v(TAG,"点击了安装");
+                File file=new File(filePath);
+                if(file.exists()){
+                    mContext.startActivity(InstallApkUtil.installIntent(filePath));
+                }else{
+                    if(mSuccessAlertDialog!=null){
+                        mSuccessAlertDialog.dismiss();
+                    }
+                    showErrorDialog("文件损坏","文件损坏,请重新下载!");
+                }
+            }
+        });
+        if(!isForceUpdate){//如果不是强制升级的弹出安装对话框
+            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Log.v(TAG,"点击了取消");
+                    if(mSuccessAlertDialog!=null){
+                        mSuccessAlertDialog.dismiss();
+                    }
+                }
+            });
+        }
+        mSuccessAlertDialog=builder.create();
+        mSuccessAlertDialog.show();
+    }
 }

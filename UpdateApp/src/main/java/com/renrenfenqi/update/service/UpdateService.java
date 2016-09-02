@@ -45,6 +45,7 @@ public class UpdateService extends Service {
     public static final String ACTION = "update_action";
     public static final String STATUS = "status";
     public static final String PROGRESS = "progress";
+    public static final String FILEPATH = "filepath";
 
     //params参数
     public static final String URL = "downloadUrl";
@@ -213,12 +214,13 @@ public class UpdateService extends Service {
      * @param status
      * @param progress
      */
-    private void sendLocalBroadcast(int status, int progress){
+    private void sendLocalBroadcast(int status, int progress,String filePath){
         if (!isSendBroadcast || localIntent == null){
             return;
         }
         localIntent.putExtra(STATUS, status);
         localIntent.putExtra(PROGRESS, progress);
+        localIntent.putExtra(FILEPATH, filePath);
         localBroadcastManager.sendBroadcast(localIntent);
     }
 
@@ -379,7 +381,7 @@ public class UpdateService extends Service {
             builder.setContentText(getString(R.string.update_app_model_prepare, 1));
             manager.notify(notifyId, builder.build());
         }
-        sendLocalBroadcast(UPDATE_START_STATUS, 1);
+        sendLocalBroadcast(UPDATE_START_STATUS, 1,"");
         if (updateListener != null){
             updateListener.start();
         }
@@ -398,7 +400,7 @@ public class UpdateService extends Service {
                 builder.setContentText(getString(R.string.update_app_model_progress, progress, "%"));
                 manager.notify(notifyId, builder.build());
             }
-            sendLocalBroadcast(UPDATE_PROGRESS_STATUS, progress);
+            sendLocalBroadcast(UPDATE_PROGRESS_STATUS, progress,"");
             if (updateListener != null){
                 updateListener.update(progress);
             }
@@ -421,7 +423,7 @@ public class UpdateService extends Service {
             n.contentIntent = intent;
             manager.notify(notifyId, n);
         }
-        sendLocalBroadcast(UPDATE_SUCCESS_STATUS, 100);
+        sendLocalBroadcast(UPDATE_SUCCESS_STATUS, 100,path);
         if (updateListener != null){
             updateListener.success();
         }
@@ -445,7 +447,7 @@ public class UpdateService extends Service {
             n.contentIntent = intent;
             manager.notify(notifyId, n);
         }
-        sendLocalBroadcast(UPDATE_ERROR_STATUS, -1);
+        sendLocalBroadcast(UPDATE_ERROR_STATUS, -1,"");
         if (updateListener != null){
             updateListener.error();
         }

@@ -29,7 +29,7 @@ public class UpdateDialog extends AlertDialog {
      * 显示下载对话框
      */
     private void init(Context context){
-        setTitle("新版本"+ AppInfoUtil.getAppName(context));
+        setTitle("新版本下载:"+ AppInfoUtil.getAppName(context));
         final LayoutInflater inflater = LayoutInflater.from(context);
         View v = inflater.inflate(com.renrenfenqi.update.R.layout.update_down_view, null);
         mProgress = (ProgressBar)v.findViewById(com.renrenfenqi.update.R.id.update_progress);
