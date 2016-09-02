@@ -96,6 +96,7 @@ public class UpdateService extends Service {
     private LocalBroadcastManager localBroadcastManager;
     private Intent localIntent;
     private DownloadApk downloadApkTask;
+    public int updateTotalSize=0;
 
     public class LocalBinder extends Binder {
         /**
@@ -264,7 +265,6 @@ public class UpdateService extends Service {
             HttpURLConnection httpConnection = null;
             InputStream is = null;
             FileOutputStream fos = null;
-            int updateTotalSize = 0;
             java.net.URL url;
             try {
                 url = new URL(downloadUrl);
@@ -352,7 +352,13 @@ public class UpdateService extends Service {
             UpdateService service = updateServiceWeakReference.get();
             if (service != null){
                 if (s != null){
-                    service.success(s);
+                    File file=new File(s);
+                    if (file.exists()&&updateTotalSize == file.length()) {
+                        service.success(s);
+                    } else {
+                        service.error();
+                    }
+
                 }else {
                     service.error();
                 }
