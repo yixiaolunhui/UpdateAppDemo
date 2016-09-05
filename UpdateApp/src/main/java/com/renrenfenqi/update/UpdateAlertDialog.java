@@ -93,7 +93,7 @@ public class UpdateAlertDialog {
     }
 
     public UpdateAlertDialog setPositiveButton(String text,
-                                            final View.OnClickListener listener) {
+                                               final View.OnClickListener listener) {
         showPosBtn = true;
         if ("".equals(text)) {
             btnPos.setText("确定");
@@ -110,7 +110,7 @@ public class UpdateAlertDialog {
     }
 
     public UpdateAlertDialog setNegativeButton(String text,
-                                            final View.OnClickListener listener) {
+                                               final View.OnClickListener listener) {
         showNegBtn = true;
         if ("".equals(text)) {
             btnNeg.setText("取消");
@@ -180,5 +180,12 @@ public class UpdateAlertDialog {
     public  UpdateAlertDialog dismiss(){
         dialog.dismiss();
         return null;
+    }
+
+    public boolean isShowing(){
+        if(dialog!=null)
+            return  dialog.isShowing();
+        else
+            return false;
     }
 }

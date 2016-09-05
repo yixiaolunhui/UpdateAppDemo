@@ -58,6 +58,7 @@ public class UpdateService extends Service {
     public static final String DOWNLOAD_ERROR_NOTIFICATION_FLAG = "downloadErrorNotificationFlag";
     public static final String IS_SEND_BROADCAST = "isSendBroadcast";
     public static final String IS_FORCE_UPDATE = "isForceUpdate";
+    public static final String IS_AUTO_INSTALL = "isAutoInstall";
 
 
     //下载大小通知频率
@@ -77,8 +78,9 @@ public class UpdateService extends Service {
     private int downloadNotificationFlag;
     private int downloadSuccessNotificationFlag;
     private int downloadErrorNotificationFlag;
-    private boolean isSendBroadcast;
+    private boolean isSendBroadcast=true;
     private boolean isForceUpdate;
+    private boolean isAutoInstall;
 
     private UpdateListener updateListener;//回调接口
 
@@ -155,8 +157,9 @@ public class UpdateService extends Service {
             downloadNotificationFlag = intent.getIntExtra(DOWNLOAD_NOTIFICATION_FLAG, 0);
             downloadErrorNotificationFlag = intent.getIntExtra(DOWNLOAD_ERROR_NOTIFICATION_FLAG, 0);
             downloadSuccessNotificationFlag = intent.getIntExtra(DOWNLOAD_SUCCESS_NOTIFICATION_FLAG, 0);
-            isSendBroadcast = intent.getBooleanExtra(IS_SEND_BROADCAST, false);
+            isSendBroadcast = intent.getBooleanExtra(IS_SEND_BROADCAST, true);
             isForceUpdate = intent.getBooleanExtra(IS_FORCE_UPDATE, false);
+            isAutoInstall = intent.getBooleanExtra(IS_AUTO_INSTALL, true);
 
 
             if (BuildConfig.DEBUG){
@@ -169,12 +172,15 @@ public class UpdateService extends Service {
                 Log.d(TAG, "downloadErrorNotificationFlag: " + downloadErrorNotificationFlag);
                 Log.d(TAG, "downloadSuccessNotificationFlag: " + downloadSuccessNotificationFlag);
                 Log.d(TAG, "isSendBroadcast: " + isSendBroadcast);
+                Log.d(TAG, "isForceUpdate: " + isForceUpdate);
+                Log.d(TAG, "isAutoInstall: " + isAutoInstall);
             }
 
+            if(isForceUpdate)isSendBroadcast=true;
+
+            Log.v(TAG,"isSendBroadcast:"+isSendBroadcast);
             notifyId = startId;
-            if(!isForceUpdate){
-                buildNotification();
-            }
+            buildNotification();
             buildBroadcast();
             downloadApkTask = new DownloadApk(this);
             downloadApkTask.execute(downloadUrl);
@@ -433,7 +439,11 @@ public class UpdateService extends Service {
         if (updateListener != null){
             updateListener.success();
         }
-        startActivity(i);
+        //自动安装
+        Log.d(TAG, "isAutoInstall: " + isAutoInstall);
+        if(isAutoInstall){
+            startActivity(i);
+        }
         stopSelf();
     }
 

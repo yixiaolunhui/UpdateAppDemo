@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                 .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
                 .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
                 .setForceUpdate(true)//是否是强制
-                .setIsSendBroadcast(true)// 是否发送广播
+                .setAutoInstall(false)
                 .build();
     }
 

@@ -44,9 +44,11 @@ public class UpdateManager {
     //下载失败通知flag
     private int downloadErrorNotificationFlag;
     //是否发送广播
-    private boolean isSendBroadcast;
+    private boolean isSendBroadcast=true;
     //是否强制升级
     private boolean isForceUpdate;
+    //是否自动安装
+    private boolean isAutoInstall=true;
     //强制升级对话框
     private UpdateDialog dialog;
     private AlertDialog mFailDialog;
@@ -145,6 +147,15 @@ public class UpdateManager {
         return isSendBroadcast;
     }
 
+    public boolean isAutoInstall() {
+        return isAutoInstall;
+    }
+
+    public UpdateManager setAutoInstall(boolean autoInstall) {
+        isAutoInstall = autoInstall;
+        return this;
+    }
+
     public UpdateManager setIsSendBroadcast(boolean isSendBroadcast) {
         this.isSendBroadcast = isSendBroadcast;
         return this;
@@ -179,6 +190,7 @@ public class UpdateManager {
         if (icoSmallResId == UpdateService.DEFAULT_RES_ID){
             icoSmallResId = icoResId;
         }
+
         intent.putExtra(UpdateService.ICO_RES_ID, icoResId);
         intent.putExtra(UpdateService.STORE_DIR, storeDir);
         intent.putExtra(UpdateService.ICO_SMALL_RES_ID, icoSmallResId);
@@ -188,7 +200,9 @@ public class UpdateManager {
         intent.putExtra(UpdateService.DOWNLOAD_ERROR_NOTIFICATION_FLAG, downloadErrorNotificationFlag);
         intent.putExtra(UpdateService.IS_SEND_BROADCAST, isSendBroadcast);
         intent.putExtra(UpdateService.IS_FORCE_UPDATE, isForceUpdate);
+        intent.putExtra(UpdateService.IS_AUTO_INSTALL, isAutoInstall);
         mContext.startService(intent);
+
         return this;
 
     }
@@ -208,14 +222,16 @@ public class UpdateManager {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+
+            Log.v("UpdateService","updateBroadcastReceiver");
             String action=intent.getAction();
             int status=intent.getIntExtra(UpdateService.STATUS,UpdateService.UPDATE_START_STATUS);
             int progress=intent.getIntExtra(UpdateService.PROGRESS,0);
             final String  filePath=intent.getStringExtra(UpdateService.FILEPATH);
-            if(action.equals(UpdateService.ACTION)&&isForceUpdate&&dialog!=null){
+            if(action.equals(UpdateService.ACTION)){
                 switch (status){
                     case UpdateService.UPDATE_START_STATUS://开始下载
-                        if(dialog!=null&&!dialog.isShowing())
+                        if(dialog!=null&&!dialog.isShowing()&&isForceUpdate)
                             dialog.show();
                         break;
                     case UpdateService.UPDATE_PROGRESS_STATUS://下载中
@@ -225,7 +241,9 @@ public class UpdateManager {
                     case UpdateService.UPDATE_SUCCESS_STATUS://成功下载
                         if(dialog!=null)
                             dialog.dismiss();
-                        showSuccessDialog(filePath);
+                        if(!isAutoInstall||isForceUpdate){
+                            showSuccessDialog(filePath);
+                        }
                         unregisterReceiver();
                         break;
                     case UpdateService.UPDATE_ERROR_STATUS:// 下载失败
@@ -279,6 +297,7 @@ public class UpdateManager {
      * @param filePath
      */
     public  void  showSuccessDialog(final String filePath){
+        Log.v("UpdateService","showSuccessDialog");
         mSuccessAlertDialog=new UpdateAlertDialog(mContext).builder();
         mSuccessAlertDialog .setTitle("下载完成");
         mSuccessAlertDialog .setMsg("点击按钮安装");
@@ -297,7 +316,7 @@ public class UpdateManager {
                 }
             }
         });
-        if(isForceUpdate){//如果不是强制升级的弹出安装对话框
+        if(!isForceUpdate){//如果不是强制升级的弹出安装对话框
             mSuccessAlertDialog.setNegativeButton("取消", new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -307,6 +326,8 @@ public class UpdateManager {
                 }
             });
         }
+        Log.v("888888","isShowing:"+mSuccessAlertDialog.isShowing());
+        if(mSuccessAlertDialog!=null&& !mSuccessAlertDialog.isShowing())
         mSuccessAlertDialog.show();
     }
 }
