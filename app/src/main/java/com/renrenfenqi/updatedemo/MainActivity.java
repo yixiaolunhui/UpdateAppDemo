@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                 .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
                 .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
                 .setForceUpdate(true)//是否是强制
-                .setAutoInstall(false)
+                .setAutoInstall(false)//是否自动安装 设置false会弹出安装对话框 但是如果是强制的 设置为true也会弹出对话框
                 .build();
     }
 
