@@ -4,7 +4,7 @@ package com.renrenfenqi.update;
  * Created by zhouweilong on 16/8/22.
  */
 
-public class Config {
+public class UpdateConfig {
 
     public final static String  DEFAULT_APP_SAVENAME="new.apk";
 

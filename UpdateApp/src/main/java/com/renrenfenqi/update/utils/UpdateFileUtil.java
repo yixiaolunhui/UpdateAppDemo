@@ -9,7 +9,7 @@ import java.io.File;
  * Created by zhouweilong on 16/8/23.
  */
 
-public class FileUtil {
+public class UpdateFileUtil {
 
     /**
      * 计算SD卡的剩余空间

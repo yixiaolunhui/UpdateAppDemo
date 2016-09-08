@@ -14,15 +14,16 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.renrenfenqi.update.BuildConfig;
-import com.renrenfenqi.update.Config;
+import com.renrenfenqi.update.UpdateConfig;
 import com.renrenfenqi.update.R;
 import com.renrenfenqi.update.listener.UpdateListener;
 import com.renrenfenqi.update.utils.AppInfoUtil;
-import com.renrenfenqi.update.utils.FileUtil;
+import com.renrenfenqi.update.utils.UpdateFileUtil;
 import com.renrenfenqi.update.utils.InstallApkUtil;
 
 import java.io.File;
@@ -53,6 +54,7 @@ public class UpdateService extends Service {
     public static final String ICO_SMALL_RES_ID = "icoSmallResId";
     public static final String UPDATE_PROGRESS = "updateProgress";
     public static final String STORE_DIR = "storeDir";
+    public static final String APP_NAME = "appName";
     public static final String DOWNLOAD_NOTIFICATION_FLAG = "downloadNotificationFlag";
     public static final String DOWNLOAD_SUCCESS_NOTIFICATION_FLAG = "downloadSuccessNotificationFlag";
     public static final String DOWNLOAD_ERROR_NOTIFICATION_FLAG = "downloadErrorNotificationFlag";
@@ -72,6 +74,7 @@ public class UpdateService extends Service {
 
 
     private String downloadUrl;
+    private String appName;
     private int icoResId;
     private int icoSmallResId;
     private int updateProgress;
@@ -87,8 +90,6 @@ public class UpdateService extends Service {
     public LocalBinder localBinder = new LocalBinder();
 
     public String storeDir;//默认存放路径
-
-    private String appName;//app名字
 
     private boolean startDownload;//开始下载
     private int lastProgressNumber;
@@ -128,7 +129,6 @@ public class UpdateService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        appName = AppInfoUtil.getApplicationName(this);
     }
 
     @Override
@@ -160,7 +160,11 @@ public class UpdateService extends Service {
             isSendBroadcast = intent.getBooleanExtra(IS_SEND_BROADCAST, true);
             isForceUpdate = intent.getBooleanExtra(IS_FORCE_UPDATE, false);
             isAutoInstall = intent.getBooleanExtra(IS_AUTO_INSTALL, true);
+            appName=intent.getStringExtra(APP_NAME);
 
+            if(TextUtils.isEmpty(appName)){
+                appName=AppInfoUtil.getAppName(this);
+            }
 
             if (BuildConfig.DEBUG){
                 Log.d(TAG, "downloadUrl: " + downloadUrl);
@@ -275,8 +279,8 @@ public class UpdateService extends Service {
             try {
                 url = new URL(downloadUrl);
                 httpConnection = (HttpURLConnection) url.openConnection();
-                httpConnection.setConnectTimeout(Config.TIME_OUT_CONNECT);
-                httpConnection.setReadTimeout(Config.TIME_OUT_READ);
+                httpConnection.setConnectTimeout(UpdateConfig.TIME_OUT_CONNECT);
+                httpConnection.setReadTimeout(UpdateConfig.TIME_OUT_READ);
 
                 if (BuildConfig.DEBUG){
                     Log.d(TAG, "download status code: " + httpConnection.getResponseCode());
@@ -297,7 +301,7 @@ public class UpdateService extends Service {
                     }
                 }
                 //判别内存是否足够
-                if (FileUtil.getFreeDiskSpace() * 1024 < updateTotalSize) {
+                if (UpdateFileUtil.getFreeDiskSpace() * 1024 < updateTotalSize) {
                     mHandler.sendEmptyMessage(-1);
                     return null;
                 }

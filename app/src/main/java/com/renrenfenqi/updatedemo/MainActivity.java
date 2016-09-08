@@ -32,11 +32,13 @@ public class MainActivity extends AppCompatActivity {
         UpdateManager.create(this)
                 .setDownloadUrl(URL)//设置下载apk网络连接
                 .setStoreDir("dalong")//设置保存路径
+                .setAppName("下载:新版好车库")
                 .setDownloadSuccessNotificationFlag(Notification.DEFAULT_ALL)
                 .setDownloadErrorNotificationFlag(Notification.DEFAULT_ALL)
                 .setForceUpdate(true)//是否是强制
                 .setAutoInstall(false)//是否自动安装 设置false会弹出安装对话框 但是如果是强制的 设置为true也会弹出对话框
                 .build();
+
     }
 
 

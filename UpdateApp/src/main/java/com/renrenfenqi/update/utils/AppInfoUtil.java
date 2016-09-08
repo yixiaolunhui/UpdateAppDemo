@@ -9,7 +9,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.renrenfenqi.update.Config;
+import com.renrenfenqi.update.UpdateConfig;
 import com.renrenfenqi.update.service.UpdateService;
 
 import java.io.File;
@@ -95,7 +95,7 @@ public class AppInfoUtil {
      */
     public static String getSaveFileName(String downloadUrl) {
         if (downloadUrl == null || TextUtils.isEmpty(downloadUrl)) {
-            return Config.DEFAULT_APP_SAVENAME;
+            return UpdateConfig.DEFAULT_APP_SAVENAME;
         }
         return downloadUrl.substring(downloadUrl.lastIndexOf("/"));
     }

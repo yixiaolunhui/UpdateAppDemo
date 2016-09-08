@@ -37,6 +37,8 @@ public class UpdateManager {
     private int updateProgress = UpdateService.UPDATE_NUMBER_SIZE;
     //下载包的存放路径 默认 sdcard/Android/package/update
     private String storeDir;
+    //app 名字
+    private String appName;
     //下载中通知flag
     private int downloadNotificationFlag;
     //下载成功通知flag
@@ -83,6 +85,15 @@ public class UpdateManager {
 
     public UpdateManager setIcoResId(int icoResId) {
         this.icoResId = icoResId;
+        return this;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public UpdateManager setAppName(String appName) {
+        this.appName = appName;
         return this;
     }
 
@@ -201,6 +212,7 @@ public class UpdateManager {
         intent.putExtra(UpdateService.IS_SEND_BROADCAST, isSendBroadcast);
         intent.putExtra(UpdateService.IS_FORCE_UPDATE, isForceUpdate);
         intent.putExtra(UpdateService.IS_AUTO_INSTALL, isAutoInstall);
+        intent.putExtra(UpdateService.APP_NAME, appName);
         mContext.startService(intent);
 
         return this;
