@@ -190,6 +190,7 @@ public class UpdateManager {
         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(mContext);
         localBroadcastManager.registerReceiver(updateBroadcastReceiver, intentFilter);
         dialog=new UpdateDialog(mContext);
+        dialog.setTitleName(appName);
         Intent intent = new Intent();
         intent.setClass(mContext, UpdateService.class);
         intent.putExtra(UpdateService.URL, downloadUrl);

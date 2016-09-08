@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">UpdateApp</string>
+    <string name="app_name">升级版本</string>
 
     <string name="update_app_model_prepare">准备下载</string>
     <string name="update_app_model_progress">正在下载 %1$d%2$s</string>
